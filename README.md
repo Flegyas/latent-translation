@@ -10,6 +10,23 @@
 
 ""
 
+# Latent Space Translation via Semantic Alignment
+
+Full code implementation coming soon via [Latentis](https://github.com/Flegyas/Latentis)!
+
+## BibTeX
+
+```bibtex
+@inproceedings{
+    maiorca2023latent,
+    title={Latent Space Translation via Semantic Alignment},
+    author={Valentino Maiorca and Luca Moschella and Antonio Norelli and Marco Fumero and Francesco Locatello and Emanuele Rodol{\`a}},
+    booktitle={Thirty-seventh Conference on Neural Information Processing Systems},
+    year={2023},
+    url={https://openreview.net/forum?id=pBa70rGHlr}
+}
+```
+
 
 ## Installation
 
@@ -50,3 +67,4 @@ Re-install the project in edit mode:
 ```bash
 pip install -e .[dev]
 ```
+
