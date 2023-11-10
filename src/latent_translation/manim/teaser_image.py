@@ -123,13 +123,6 @@ class LatentSimilarity(Scene):
         dec1 = self._build_decoder(enc_type="absolute", label=r"dec_\mathbf{X}")  # .next_to(rel1, UP)
         dec2 = self._build_decoder(enc_type="absolute", label=r"dec_\mathbf{Y}")  # .next_to(rel1, UP)
 
-        # blocks = (
-        #     VGroup(dec1, abs1, dec2, abs2)
-        #     .arrange_in_grid(2, 2, buff=LARGE_BUFF * 2)
-        #     .scale(1.5)
-        #     .to_edge(DOWN)
-        #     .to_edge(LEFT)
-        # )
         block1 = VGroup(abs1, dec1).arrange(DOWN, buff=LARGE_BUFF)
         block2 = VGroup(abs2, dec2).arrange(DOWN, buff=LARGE_BUFF)
         block_rel = VGroup(rel, rel_dec).arrange(DOWN, buff=LARGE_BUFF)
@@ -139,8 +132,6 @@ class LatentSimilarity(Scene):
             block2,
         ).arrange(RIGHT, buff=LARGE_BUFF * 2)
         block_rel.shift(DOWN)
-        # rel = rel.scale(1.5).set_x(blocks.get_right()[0] + LARGE_BUFF * 3)
-        # rel_dec.next_to(rel, RIGHT, buff=LARGE_BUFF * 2)
 
         rel_proj1 = self._build_projection_arrow(
             start=abs1.get_right() + [0, -0.2, 0],
@@ -197,15 +188,6 @@ class LatentSimilarity(Scene):
             label_shift=[0, -0.3, 0],
             # label_rotation=PI / 2,
         )
-        inverse_r = self._build_projection_arrow(
-            start=abs2.get_top() + [0.3, 0, 0],
-            end=abs1.get_bottom() + [0.3, 0, 0],
-            color2=_ABS_COLOR,
-            label="\mathcal{T}^{-1}(\mathbf{Y})}",
-            label_side=LEFT,
-            label_shift=[1.5, 0, 0],
-            label_rotation=-PI / 2,
-        )
 
         edges = VGroup(
             decoding_abs1,
@@ -220,39 +202,6 @@ class LatentSimilarity(Scene):
         # self.add(blocks, edges, rel, rel_dec)
         self.add(blocks, edges)
 
-        top_blocks = VGroup(dec1, abs1, rel)
-
-        col_header = [
-            # Text("This Work", font_size=font_size, color=BLACK, weight=BOLD)
-            # .next_to(top_blocks, UP, buff=MED_LARGE_BUFF)
-            # .set_x(dec1.get_center()[0]),
-            # Text("Absolute", font_size=font_size, color=BLACK, weight=BOLD)
-            # .next_to(top_blocks, UP, buff=MED_LARGE_BUFF)
-            # .set_x(abs1.get_center()[0]),
-            # Text("Relative Representation", font_size=font_size, color=BLACK, weight=BOLD)
-            # .next_to(top_blocks, UP, buff=MED_LARGE_BUFF)
-            # .set_x(rel.get_center()[0]),
-        ]
-
-        abs_header_text = Text(
-            "Absolute",
-            font_size=font_size,
-        )
-        abs_header_box = SurroundingRectangle(abs_header_text, buff=MED_SMALL_BUFF, corner_radius=0.1, color=_ABS_COLOR)
-        abs_header = VGroup(abs_header_box, abs_header_text)
-
-        rel_header_text = Text(
-            "Relative",
-            font_size=font_size,
-        )
-        rel_header_box = SurroundingRectangle(rel_header_text, buff=MED_SMALL_BUFF, corner_radius=0.1, color=_REL_COLOR)
-        rel_header = VGroup(rel_header_box, rel_header_text)
-
-        # row_header = [
-        #     abs_header.next_to(aa_square, LEFT, buff=MED_LARGE_BUFF).set_y(aa_square.get_center()[1]).rotate(PI / 2),
-        #     rel_header.next_to(cc_square, LEFT, buff=MED_LARGE_BUFF).set_y(cc_square.get_center()[1]).rotate(PI / 2),
-        # ]
-        self.add(*col_header)
         legend = self._build_legend()
         self.add(legend)
 
