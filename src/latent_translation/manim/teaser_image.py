@@ -1,8 +1,6 @@
 from manim import *
 from manim_mobject_svg import *
 
-from nn_core.common import PROJECT_ROOT
-
 _ABS_COLOR = TEAL_D
 _REL_COLOR = GOLD_D
 
