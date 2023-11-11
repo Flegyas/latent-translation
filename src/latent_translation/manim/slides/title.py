@@ -4,7 +4,7 @@ from manim_editor import PresentationSectionType
 from nn_core.common import PROJECT_ROOT
 
 
-class TitleAnimation(Scene):
+class Title(Scene):
     def construct(self):
         paper_title = Tex("Latent Space Translation", font_size=72).to_edge(LEFT).shift(UP * 2.5)
         paper_title_sub = Tex("via Semantic Alignment", font_size=52)
