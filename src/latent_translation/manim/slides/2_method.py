@@ -1,16 +1,17 @@
 import itertools
+from re import X
 from typing import *
-from lightning import seed_everything
-from manim.opengl import Color
-from matplotlib import pyplot as plt
 
 import numpy as np
 import pandas as pd
-from manim import *
-from manim_editor import PresentationSectionType
+from regex import D
 import torch
+from lightning import seed_everything
+from manim import *
+from manim.opengl import Color
+from manim_editor import PresentationSectionType
+from matplotlib import pyplot as plt
 from scipy.stats import ortho_group
-
 
 dtype = torch.float32
 
@@ -143,27 +144,6 @@ def random_transform(x: torch.Tensor, seed: int) -> torch.Tensor:
 
 
 class ParallelOpt(Scene):
-    def build_optimization(self, axes, run_opt: pd.DataFrame, sample_ids: Sequence[int], max_lim: int):
-        left_dots = []
-        left_anims = []
-        for sample_id in sample_ids[:max_lim]:
-            point_df = run_opt[run_opt["sample_id"] == sample_id]
-
-            points = np.asarray([(x, y, 0) for x, y in zip(point_df.dim_0, point_df.dim_1)])
-            # points = ((points - points.min(0)) / (points.max(0) - points.min())) * 2 - 1
-            points = axes.coords_to_point(points)
-            zero_point = points[0]
-            point_target = int(point_df[point_df["step"] == 0].target)
-            dot = Dot(zero_point, stroke_width=1, fill_opacity=0.75, color=TARGET_COLORS[point_target], radius=0.05)
-            dot.target = point_target
-            dot.sample_id = point_df.sample_id
-            left_dots.append(dot)
-
-            path = VMobject()
-            path.set_points_smoothly(points)
-            left_anims.append(MoveAlongPath(dot, path, rate_func=rate_functions.smooth))
-        return left_dots, left_anims
-
     def build_pipeline(self, axis, source_space, target_space, colors):
         centered_source_space = source_space - source_space.mean(dim=0)
         centered_target_space = target_space - target_space.mean(dim=0)
@@ -177,30 +157,36 @@ class ParallelOpt(Scene):
 
         dots = []
         anims = []
-        previous_state = torch.cat([source_space, torch.zeros((source_space.size(0), 1), dtype=dtype)], dim=1)
-        for next_state in (centered_source_space, scaled_source_space, rotated_source_space, decentered_source_space):
-            state_dots = []
-            state_anims = []
-            # pad next_state adding 0 to last dimension
-            next_state = torch.cat([next_state, torch.zeros((next_state.size(0), 1), dtype=dtype)], dim=1)
-            previous_points = axis.coords_to_point(previous_state)
-            next_points = axis.coords_to_point(next_state)
-            for previous_point, next_point, color in zip(previous_points, next_points, colors):
-                previous_dot = Dot(previous_point, stroke_width=1, fill_opacity=0.75, color=color, radius=0.05)
+        previous_step = torch.cat([source_space, torch.zeros((source_space.size(0), 1), dtype=dtype)], dim=1)
+        previous_step = [
+            Dot(axis.coords_to_point(*x), stroke_width=1, fill_opacity=0.75, color=c, radius=0.05)
+            for x, c in zip(previous_step, colors)
+        ]
+        for next_step in (
+            centered_source_space,
+            scaled_source_space,
+            rotated_source_space,
+            descaled_source_space,
+            decentered_source_space,
+        ):
+            step_dots = []
+            step_anims = []
+            next_step = torch.cat([next_step, torch.zeros((next_step.size(0), 1), dtype=dtype)], dim=1)
+            next_points = axis.coords_to_point(next_step)
+
+            for previous_dot, next_point in zip(previous_step, next_points):
                 previous_dot.generate_target()
                 previous_dot.target.move_to(next_point)
-                state_anims.append(MoveToTarget(previous_dot, rate_func=rate_functions.smooth))
-                state_dots.append(previous_dot)
+                step_anims.append(MoveToTarget(previous_dot, rate_func=rate_functions.smooth))
+                step_dots.append(previous_dot)
 
             anims.append(
                 AnimationGroup(
-                    *state_anims,
+                    *step_anims,
                     lag_ratio=0,
                 )
             )
-            dots.append(state_dots)
-
-            previous_state = next_state
+            dots.append(step_dots)
 
         return dots, anims
 
@@ -208,6 +194,9 @@ class ParallelOpt(Scene):
         self.next_section("Method", type=PresentationSectionType.NORMAL, skip_animations=False)
 
         x = build_space(random=False)
+        colors = (np.arctan2(x[:, 1] - 0.5, x[:, 0] - 0.5) + np.pi).flatten()
+
+        x = x + torch.tensor([0.5, 0.5])
         y = transform_latents(
             x,
             translation=torch.tensor([1, 1.2]),
@@ -217,7 +206,6 @@ class ParallelOpt(Scene):
             scale=2,
         )
 
-        colors = (np.arctan2(x[:, 1] - 0.5, x[:, 0] - 0.5) + np.pi).flatten()
         colors = plt.get_cmap("Spectral_r")(colors)
         colors = [rgba_to_color(color) for color in colors]
 
@@ -255,11 +243,12 @@ class ParallelOpt(Scene):
             Create(left_axis),
             Create(right_axis),
         )
-        # self.play(*(Create(x) for x in left_dots[0]), run_time=0.1)
+        self.play(*(Create(x) for x in left_dots[0]), run_time=0.1)
         self.play(*(Create(x) for x in right_dots), run_time=0.1)
 
         self.wait()
-        self.play(*pipeline_anims, run_time=10)
+        for pipeline_step in pipeline_anims:
+            self.play(pipeline_step, run_time=1)
 
         self.wait()
         self.next_section("Reset", type=PresentationSectionType.SKIP, skip_animations=False)
