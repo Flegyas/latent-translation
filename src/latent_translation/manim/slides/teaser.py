@@ -195,18 +195,48 @@ class Teaser(Scene):
             label_rotation=-PI / 2,
         )
 
-        edges = VGroup(
-            decoding_abs1,
-            decoding_abs2,
-            decoding_rel,
-            r,
-            # inverse_r,
-            rel_proj1,
-            rel_proj2,
+        self.play(
+            AnimationGroup(
+                FadeIn(abs1),
+                FadeIn(abs2),
+                lag_ratio=0,
+            )
         )
 
-        # self.add(blocks, edges, rel, rel_dec)
-        self.add(blocks, edges)
+        self.play(
+            AnimationGroup(
+                FadeIn(decoding_abs1),
+                FadeIn(dec1),
+                FadeIn(decoding_abs2),
+                FadeIn(dec2),
+                lag_ratio=0,
+            )
+        )
 
         legend = self._build_legend()
-        self.add(legend)
+        self.play(
+            AnimationGroup(
+                AnimationGroup(
+                    FadeIn(rel_proj1),
+                    FadeIn(rel_proj2),
+                    # FadeIn(rel_dec),
+                    lag_ratio=0,
+                ),
+                FadeIn(rel),
+                FadeIn(legend),
+                lag_ratio=0,
+            )
+        )
+
+        self.play(AnimationGroup(FadeIn(decoding_rel), FadeIn(rel_dec), lag_ratio=0))
+
+        rel_block = VGroup(rel, rel_dec, rel_proj1, rel_proj2)
+        cross = Cross(rel_block, stroke_width=10)
+        self.play(FadeIn(cross))
+
+        self.play(
+            AnimationGroup(
+                FadeIn(r),
+                lag_ratio=0,
+            )
+        )
