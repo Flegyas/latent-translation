@@ -209,8 +209,6 @@ class ParallelOpt(Scene):
         colors = plt.get_cmap("Spectral_r")(colors)
         colors = [rgba_to_color(color) for color in colors]
 
-        # reconstructed_target_space = decentered_source_space.clone()
-
         NumberLine()
         axis_range = (-3, 3)
         left_axis = (
