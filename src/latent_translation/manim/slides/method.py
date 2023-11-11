@@ -1,14 +1,9 @@
-import itertools
-from re import X
 from typing import *
 
 import numpy as np
-import pandas as pd
-from regex import D
 import torch
 from lightning import seed_everything
 from manim import *
-from manim.opengl import Color
 from manim_editor import PresentationSectionType
 from matplotlib import pyplot as plt
 from scipy.stats import ortho_group

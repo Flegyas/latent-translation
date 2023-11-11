@@ -67,4 +67,3 @@ Re-install the project in edit mode:
 ```bash
 pip install -e .[dev]
 ```
-
