@@ -138,7 +138,7 @@ def random_transform(x: torch.Tensor, seed: int) -> torch.Tensor:
     return x @ random_matrix
 
 
-class ParallelOpt(Scene):
+class Method(Scene):
     def build_pipeline(self, axis, source_space, target_space, colors):
         centered_source_space = source_space - source_space.mean(dim=0)
         centered_target_space = target_space - target_space.mean(dim=0)

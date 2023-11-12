@@ -1,0 +1,5 @@
+outs:
+- md5: c615dcd012e102121136c8d8ff60c57f
+  size: 22376
+  hash: md5
+  path: multimodal_stitching.tsv

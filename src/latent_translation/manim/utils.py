@@ -2,6 +2,13 @@ from typing import *
 
 from manim import *
 from manim_editor import *
+from matplotlib import pyplot as plt
+
+
+def value_to_color(value, min_val, max_val, cmap: str):
+    cmap = plt.get_cmap(cmap)
+    rgba = cmap((value - min_val) / (max_val - min_val))
+    return rgba_to_color(rgba)
 
 
 def section_slide(scene, section_title: str, math: bool = False):
