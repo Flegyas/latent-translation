@@ -230,9 +230,14 @@ class Teaser(Scene):
 
         self.play(AnimationGroup(FadeIn(decoding_rel), FadeIn(rel_dec), lag_ratio=0))
 
-        rel_block = VGroup(rel, rel_dec, rel_proj1, rel_proj2)
+        rel_block = VGroup(rel, decoding_rel, rel_dec, rel_proj1, rel_proj2)
         cross = Cross(rel_block, stroke_width=10)
-        self.play(FadeIn(cross))
+        self.play(Create(cross))
+
+        self.play(
+            rel_block.animate.set_opacity(0.1),
+            Uncreate(cross),
+        )
 
         self.play(
             AnimationGroup(
