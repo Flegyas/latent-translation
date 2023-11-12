@@ -4,6 +4,7 @@ from typing import Tuple
 import pandas as pd
 from manim import *
 from manim_editor import *
+from pygments.styles.rainbow_dash import RED_DARK
 
 from nn_core.common import PROJECT_ROOT
 
@@ -24,7 +25,7 @@ domain2encoders = {
         "bert-base-uncased",
         "google/electra-base-discriminator",
         "roberta-base",
-        "albert-base-v2",
+        # "albert-base-v2",
         "xlm-roberta-base",
         # "openai/clip-vit-base-patch32",
     ],
@@ -54,15 +55,9 @@ def get_space_name(encoder_name: str, domain: str):
     return encoder2name[encoder_name]
 
 
-x_values = list(map(lambda x: get_space_name(x, domain="vision"), domain2encoders["vision"])) + list(
-    map(lambda x: get_space_name(x, domain="text"), domain2encoders["text"])
-)
-y_values = x_values.copy()
-
-
 class Heatmap(VGroup):
     @classmethod
-    def build_heatmap(cls, data: np.ndarray, cmap):
+    def build_heatmap(cls, data: np.ndarray, x_values, y_values, x_label: str, y_label: str, cmap):
         max_val = data.max()
         min_val = data.min()
 
@@ -81,21 +76,24 @@ class Heatmap(VGroup):
                 last_row.append(cell)
             cells.append(cell)
 
-        heatmap = VGroup(*cells).arrange_in_grid(data.shape[0], data.shape[1], buff=0)
+        heatmap = VGroup(*cells).arrange_in_grid(data.shape[0], data.shape[1], buff=0).scale(0.75)
         heatmap_border = SurroundingRectangle(heatmap, buff=0, color=WHITE, stroke_width=2)
 
-        x_ticks = VGroup(
+        x_values = VGroup(
             *[
-                Tex(tick).scale_to_fit_height(cell.width * 0.35).rotate(70).next_to(cell.get_bottom(), DOWN + LEFT / 2)
+                Tex(tick).scale_to_fit_height(cell.width * 0.35).rotate(PI / 4).next_to(cell.get_bottom(), DOWN + LEFT)
                 for tick, cell in zip(x_values, last_row)
             ]
         )
-        y_ticks = VGroup(
+        x_label = Tex(x_label).next_to(x_values, DOWN, buff=LARGE_BUFF)
+
+        y_values = VGroup(
             *[
                 Tex(tick).scale_to_fit_height(cell.height * 0.35).next_to(cell.get_left(), LEFT)
                 for tick, cell in zip(y_values, first_col)
             ]
         )
+        y_label = Tex(y_label).rotate(PI / 2).next_to(y_values, LEFT, buff=LARGE_BUFF)
 
         colorbar = VGroup(
             *[
@@ -122,15 +120,25 @@ class Heatmap(VGroup):
 
         colorbar.scale_to_fit_height(heatmap.height * 0.75).next_to(heatmap, RIGHT, buff=LARGE_BUFF)
 
-        return VGroup(heatmap, colorbar, VGroup(*x_ticks), VGroup(*y_ticks), heatmap_border)
+        return VGroup(heatmap, colorbar, VGroup(*x_values), VGroup(*y_values), heatmap_border, x_label, y_label)
 
-    def __init__(self, data: np.ndarray, cmap="Blues"):
+    def __init__(self, data: np.ndarray, x_values, y_values, x_label: str, y_label: str, cmap="Blues"):
         self.n_rows, self.n_cols = data.shape
-        self.matrix, self.colorbar, self.x_ticks, self.y_ticks, self.heatmap_border = Heatmap.build_heatmap(
-            data, cmap=cmap
+        (
+            self.matrix,
+            self.colorbar,
+            self.x_ticks,
+            self.y_ticks,
+            self.heatmap_border,
+            self.x_label,
+            self.y_label,
+        ) = Heatmap.build_heatmap(
+            data, cmap=cmap, x_values=x_values, y_values=y_values, x_label=x_label, y_label=y_label
         )
 
-        super().__init__(self.matrix, self.colorbar, self.x_ticks, self.y_ticks)
+        super().__init__(
+            self.matrix, self.colorbar, self.x_ticks, self.y_ticks, self.heatmap_border, self.x_label, self.y_label
+        )
 
     def __getitem__(self, row_col: Tuple[int, int]):
         row, col = row_col
@@ -159,20 +167,42 @@ class Crossmodal(Scene):
         df["encoding_space"] = df["encoding_space"].apply(lambda x: encoder2name[x])
         df["decoding_space"] = df["decoding_space"].apply(lambda x: encoder2name[x])
 
-        data: np.ndarray = self.to_matrix(df)
+        x_values = list(map(lambda x: get_space_name(x, domain="vision"), domain2encoders["vision"])) + list(
+            map(lambda x: get_space_name(x, domain="text"), domain2encoders["text"])
+        )
+        y_values = x_values.copy()
 
-        heatmap = Heatmap(data=data, cmap="Blues").center().scale(0.5)
+        data: np.ndarray = self.to_matrix(df, x_values, y_values)
+        heatmap = (
+            Heatmap(
+                data=data,
+                x_values=x_values,
+                y_values=y_values,
+                x_label=r"\textbf{Encoder}",
+                y_label=r"\textbf{Decoder}",
+                cmap="Blues",
+            )
+            .center()
+            .scale(0.5)
+        )
         self.add(heatmap)
 
-        highlight = heatmap.highlight(start_row=0, end_row=5, start_col=0, end_col=5, color=RED)
-        # self.play(Create(highlight))
-        # self.wait()
-        # self.play(Uncreate(highlight))
+        # language encodings are better
+        highlight = heatmap.highlight(start_row=6, end_row=10, start_col=6, end_col=10, color=RED_DARK)
+        self.play(Create(highlight))
+        self.wait()
+        self.play(Uncreate(highlight))
 
-    def to_matrix(self, df):
+        # better encoder -> better performances than training modality
+        highlight = heatmap.highlight(start_row=0, end_row=5, start_col=9, end_col=10, color=RED_DARK)
+        self.play(Create(highlight))
+        self.wait()
+        self.play(Uncreate(highlight))
+
+    def to_matrix(self, df, x_values, y_values):
         z_key: str = "score"
-        z = np.zeros((len(y_values), len(x_values)))
+        z = np.zeros((len(x_values), len(y_values)))
         for (i_x, x), (j_y, y) in itertools.product(enumerate(x_values), enumerate(y_values)):
             z[i_x, j_y] = df[(df["encoding_space"] == x) & (df["decoding_space"] == y)][z_key].mean()
 
-        return z
+        return z.T
