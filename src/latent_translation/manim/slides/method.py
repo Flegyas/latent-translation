@@ -150,19 +150,20 @@ class Method(Scene):
         descaled_source_space = rotated_source_space * target_space.std(dim=0)
         decentered_source_space = descaled_source_space + target_space.mean(dim=0)
 
-        dots = []
-        anims = []
         previous_step = torch.cat([source_space, torch.zeros((source_space.size(0), 1), dtype=dtype)], dim=1)
         previous_step = [
             Dot(axis.coords_to_point(*x), stroke_width=1, fill_opacity=0.75, color=c, radius=0.05)
             for x, c in zip(previous_step, colors)
         ]
-        for next_step in (
-            centered_source_space,
-            scaled_source_space,
-            rotated_source_space,
-            descaled_source_space,
-            decentered_source_space,
+        dots = []
+        anims = []
+        label = None
+        for next_step, next_step_name in (
+            (centered_source_space, "Centering"),
+            (scaled_source_space, "Scaling"),
+            (rotated_source_space, r"$\mathcal{T}$ application"),
+            (descaled_source_space, "Descaling"),
+            (decentered_source_space, "Decentering"),
         ):
             step_dots = []
             step_anims = []
@@ -175,12 +176,18 @@ class Method(Scene):
                 step_anims.append(MoveToTarget(previous_dot, rate_func=rate_functions.smooth))
                 step_dots.append(previous_dot)
 
+            label = Tex(next_step_name).next_to(axis, DOWN, buff=LARGE_BUFF)
             anims.append(
                 AnimationGroup(
-                    *step_anims,
-                    lag_ratio=0,
+                    Unwrite(label) if label is not None else None,
+                    AnimationGroup(
+                        FadeIn(label),
+                        AnimationGroup(*step_anims, lag_ratio=0),
+                        lag_ratio=1,
+                    ),
                 )
             )
+
             dots.append(step_dots)
 
         return dots, anims
@@ -217,6 +224,10 @@ class Method(Scene):
             ).to_edge(LEFT)
             # .set_color(GRAY)
         )
+        left_axis_label = Tex(r"Source space").next_to(left_axis, UP, buff=LARGE_BUFF)
+        left_axis_block = VGroup(left_axis_label, left_axis)
+        left_axis_block.scale(0.7)
+
         right_axis = (
             Axes(
                 x_range=axis_range,
@@ -228,13 +239,16 @@ class Method(Scene):
             ).to_edge(RIGHT)
             # .set_color(GRAY)
         )
+        right_axis_label = Tex(r"Target space").next_to(right_axis, UP, buff=LARGE_BUFF)
+        right_axis_block = VGroup(right_axis_label, right_axis)
+        right_axis_block.scale(0.7)
 
         left_dots, pipeline_anims = self.build_pipeline(axis=left_axis, source_space=x, target_space=y, colors=colors)
         right_dots = [Dot(right_axis.coords_to_point(x, y, 0), radius=0.05, color=c) for (x, y), c in zip(y, colors)]
 
         self.play(
-            Create(left_axis),
-            Create(right_axis),
+            Create(left_axis_block),
+            Create(right_axis_block),
         )
         self.play(*(Create(x) for x in left_dots[0]), run_time=0.1)
         self.play(*(Create(x) for x in right_dots), run_time=0.1)
@@ -244,13 +258,26 @@ class Method(Scene):
             self.play(pipeline_step, run_time=1)
 
         self.wait()
+
+        self.play(
+            Uncreate(left_axis_block),
+            Uncreate(right_axis_block),
+        )
+
+        self.wait()
+
+        approx_symbol = Tex(r"$\approx$")
+        to_compare = VGroup(VGroup(*left_dots[0]), approx_symbol, VGroup(*right_dots))
+        self.play(
+            AnimationGroup(
+                to_compare.animate.arrange(RIGHT, buff=LARGE_BUFF * 2).center(), Write(approx_symbol), lag_ratio=0.5
+            ),
+            run_time=2,
+        )
+
         self.next_section("Reset", type=PresentationSectionType.SKIP, skip_animations=False)
 
         self.play(
-            AnimationGroup(*(Uncreate(x) for x in left_dots[0]), lag_ratio=0.2),
-            AnimationGroup(*(Uncreate(x) for x in right_dots), lag_ratio=0.2),
-            Uncreate(left_axis),
-            Uncreate(right_axis),
-            # Uncreate(midline),
+            AnimationGroup(*(Uncreate(x) for x in to_compare), lag_ratio=0.2),
             run_time=2,
         )
