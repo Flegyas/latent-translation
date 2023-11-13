@@ -33,37 +33,42 @@ class Algorithm(Scene):
 
         algo = (
             Bullet(
-                r"Select a subset $\mathbb{A_\mathbb{X}}$ of the training set $\mathbb{X}$",
+                r"Given a subset $\mathbb{A_\mathbb{X}}$ of the training set $\mathbb{X}$",
                 font_size=FONT_SIZE,
                 group=0,
             ),
             Bullet(
-                r"Select a \textbf{corresponding} $\mathbb{A_\mathbb{Y}}$ of the training set $\mathbb{Y}$",
+                r"a subset $\mathbb{A_\mathbb{Y}}$ of the training set $\mathbb{Y}$",
                 font_size=FONT_SIZE,
                 group=1,
             ),
             Bullet(
-                r"Apply the respective encoding functions $E_x$ and $E_y$",
+                r"and a \textbf{correspondence} between them",
                 font_size=FONT_SIZE,
                 group=2,
             ),
             Bullet(
-                r"Normalize the encodings",
+                r"Apply the respective encoding functions $E_x$ and $E_y$",
                 font_size=FONT_SIZE,
                 group=3,
+            ),
+            Bullet(
+                r"Normalize the encodings",
+                font_size=FONT_SIZE,
+                group=4,
             ),
             Bullet(
                 r"The \textbf{latent translation} operator $\mathcal{T}$ ",
                 " is obtained via solving:",
                 font_size=FONT_SIZE,
-                group=4,
+                group=5,
             ),
             MathBullet(
                 r"\mathcal{T}(\mathbf{x}) = \mathbf{R} \mathbb{A_\mathbb{X}} + \mathbf{b}",
                 font_size=FONT_SIZE + 5,
                 symbol=None,
                 level=1,
-                group=5,
+                group=6,
                 adjustment=UP * MED_LARGE_BUFF * 1.25 * 0.25,
             ),
         )
@@ -108,22 +113,19 @@ class Algorithm(Scene):
             .next_to(anchor_images1, DOWN, buff=MED_LARGE_BUFF * 2)
         )
 
-        corresponding_anchors = []
+        correspondence = []
         for anchor_image1, anchor_image2 in zip(anchor_images1.submobjects, anchor_images2.submobjects):
-            corresponding_anchors.append(
-                Group(
-                    Line(
-                        anchor_image1.get_bottom() + DOWN * 0.25,
-                        anchor_image2.get_top() + UP * 0.25,
-                        color=TEAL_D,
-                        stroke_width=5,
-                    ),
-                    anchor_image2,
-                )
+            correspondence.append(
+                Line(
+                    anchor_image1.get_bottom() + DOWN * 0.25,
+                    anchor_image2.get_top() + UP * 0.25,
+                    color=TEAL_D,
+                    stroke_width=5,
+                ),
             )
 
         semantic_alignment = SurroundingRectangle(
-            Group(anchor_images1, *corresponding_anchors), color=TEAL_D, stroke_width=5
+            Group(anchor_images1, anchor_images2, *correspondence), color=TEAL_D, stroke_width=5
         )
         semantic_alignment_label = Tex(r"\textbf{Semantic Alignment!}", font_size=38).next_to(semantic_alignment, UP)
         semantic_alignment = Group(semantic_alignment, semantic_alignment_label)
@@ -144,8 +146,18 @@ class Algorithm(Scene):
                 bulletlist.only_next(),
                 run_time=1,
             ),
-            AnimationGroup(*[FadeIn(correspondence) for correspondence in corresponding_anchors], lag_ratio=0.7),
+            FadeIn(anchor_images2),
         )
+
+        # correspondence
+        self.play(
+            AnimationGroup(
+                bulletlist.only_next(),
+                AnimationGroup(*[FadeIn(c) for c in correspondence], lag_ratio=0.7),
+                # run_time=1,
+            )
+        )
+
         self.play(FadeIn(semantic_alignment))
         self.wait(0.5)
 
@@ -153,15 +165,16 @@ class Algorithm(Scene):
         anims = []
         polygons = []
         regularized_anims = []
+
         np.random.seed(42)
         min_displacement = 0.05
         displacement_factor: float = 0.3
         for image, color in zip(anchor_images1.submobjects, ANCHORS_POINT_COLORS):
             polygon = Polygon(
-                image.get_center() + (UL) * np.random.uniform(min_displacement, image.width * displacement_factor),
-                image.get_center() + (UR) * np.random.uniform(min_displacement, image.width * displacement_factor),
-                image.get_center() + (DR) * np.random.uniform(min_displacement, image.width * displacement_factor),
-                image.get_center() + (DL) * np.random.uniform(min_displacement, image.width * displacement_factor),
+                image.get_center() + UL * np.random.uniform(min_displacement, image.width * displacement_factor),
+                image.get_center() + UR * np.random.uniform(min_displacement, image.width * displacement_factor),
+                image.get_center() + DR * np.random.uniform(min_displacement, image.width * displacement_factor),
+                image.get_center() + DL * np.random.uniform(min_displacement, image.width * displacement_factor),
                 color=color,
                 fill_opacity=1,
                 z_index=1,
@@ -223,9 +236,16 @@ class Algorithm(Scene):
                     run_time=1,
                 ),
                 AnimationGroup(
-                    *anims,
-                    lag_ratio=0.5,
-                    run_time=2.5,
+                    AnimationGroup(
+                        *anims[: len(anims) // 2],
+                        lag_ratio=0.5,
+                        run_time=1,
+                    ),
+                    AnimationGroup(
+                        *anims[len(anims) // 2 :],
+                        lag_ratio=0.5,
+                        run_time=1,
+                    ),
                 ),
                 lag_ratio=0.5,
             ),
@@ -236,9 +256,16 @@ class Algorithm(Scene):
             AnimationGroup(
                 bulletlist.only_next(),
                 AnimationGroup(
-                    *regularized_anims,
-                    lag_ratio=0.5,
-                    run_time=2.5,
+                    AnimationGroup(
+                        *regularized_anims[: len(regularized_anims) // 2],
+                        lag_ratio=0.5,
+                        run_time=1.5,
+                    ),
+                    AnimationGroup(
+                        *regularized_anims[len(regularized_anims) // 2 :],
+                        lag_ratio=0.5,
+                        run_time=1.5,
+                    ),
                 ),
                 lag_ratio=0.5,
             ),
