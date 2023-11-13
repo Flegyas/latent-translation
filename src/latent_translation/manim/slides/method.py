@@ -11,13 +11,12 @@ from scipy.stats import ortho_group
 dtype = torch.float32
 
 
-POINTS = 100
-ANCHORS_IDX = [0, 5]
+DOT_RADIUS: float = 0.08
 
 
 def build_space(random: bool = False, N: int = 2):
-    x = torch.linspace(-0.5, 0.5, 5, dtype=dtype)
-    y = torch.linspace(-0.5, 0.5, 5, dtype=dtype)
+    x = torch.linspace(-1, 1, 7, dtype=dtype)
+    y = torch.linspace(-1, 1, 7, dtype=dtype)
 
     xx, yy = torch.meshgrid(x, y, indexing="ij")
 
@@ -34,48 +33,6 @@ def svd_translation(A: torch.Tensor, B: torch.Tensor) -> torch.Tensor:
     u, s, vt = torch.svd((B.T @ A).T)
     R = u @ vt.T
     return R, s
-
-
-def transform_latents(
-    x: torch.Tensor,
-    norm_mode: Optional[str],
-    seed: int,
-    isometry_first: bool = True,
-    translation: Optional[torch.Tensor] = None,
-    noise: bool = False,
-    N: int = 2,
-) -> torch.Tensor:
-    x = x.clone()
-    if translation is not None:
-        x += translation.unsqueeze(0)
-
-    norm = torch.tensor([1], dtype=dtype)
-
-    if norm_mode == "independent":
-        seed_everything(seed=seed)
-        norm = torch.abs((torch.randn(x.size(0), dtype=dtype) + 0.001) * 100)
-    elif norm_mode == "consistent":
-        grid_side: int = int(x.size(0) ** (1 / 2))
-        norm = x.reshape(grid_side, grid_side, N).sum(dim=-1)
-        norm = (norm**2).flatten()
-        norm = (norm - norm.min()) / (norm.max() - norm.min()) + 1
-    elif norm_mode == "smooth":
-        grid_side: int = int(x.size(0) ** (1 / 2))
-        norm = x.reshape(grid_side, grid_side, N).sum(dim=-1)
-        norm = (norm**3).flatten()
-        norm = (norm - norm.min()) / (norm.max() - norm.min()) + 1
-    elif norm_mode == "fixed":
-        x = x * 10
-
-    if noise:
-        x = x + torch.abs(torch.randn_like(x) * 0.05)
-
-    if isometry_first:
-        out = iso_transform(x, seed=seed) * norm.unsqueeze(-1)
-    else:
-        out = iso_transform(x * norm.unsqueeze(-1), seed=seed)
-
-    return out
 
 
 def iso_transform(x, seed: int = 42, dtype: torch.dtype = torch.float32, return_transform: bool = False):
@@ -122,7 +79,7 @@ def transform_latents(
         x = x * 10
 
     if noise:
-        x = x + torch.abs(torch.randn_like(x) * 0.05)
+        x = x + torch.abs(torch.randn_like(x) * 0.04)
 
     if isometry_first:
         out = iso_transform(x, seed=seed) * norm.unsqueeze(-1)
@@ -152,7 +109,7 @@ class Method(Scene):
 
         previous_step = torch.cat([source_space, torch.zeros((source_space.size(0), 1), dtype=dtype)], dim=1)
         previous_step = [
-            Dot(axis.coords_to_point(*x), stroke_width=1, fill_opacity=0.75, color=c, radius=0.05)
+            Dot(axis.coords_to_point(*x), stroke_width=1, fill_opacity=0.75, color=c, radius=DOT_RADIUS)
             for x, c in zip(previous_step, colors)
         ]
         dots = []
@@ -196,16 +153,20 @@ class Method(Scene):
         self.next_section("Method", type=PresentationSectionType.NORMAL, skip_animations=False)
 
         x = build_space(random=False)
-        colors = (np.arctan2(x[:, 1] - 0.5, x[:, 0] - 0.5) + np.pi).flatten()
+        # calculate the angle for each 2D point in x
+        theta = torch.atan2(x[:, 1], x[:, 0])
+        # calculate the radius for each 2D point in x
+        radius = torch.norm(x, dim=1)
+        colors = theta / np.pi + (radius / radius.max())
 
-        x = x + torch.tensor([0.5, 0.5])
+        x = x * 2 + torch.tensor([0.5, 0.5])
         y = transform_latents(
             x,
             translation=torch.tensor([1, 1.2]),
             norm_mode=None,
-            seed=24,
+            seed=13,
             noise=True,
-            scale=2,
+            scale=0.5,
         )
 
         colors = plt.get_cmap("Spectral_r")(colors)
@@ -244,7 +205,9 @@ class Method(Scene):
         right_axis_block.scale(0.7)
 
         left_dots, pipeline_anims = self.build_pipeline(axis=left_axis, source_space=x, target_space=y, colors=colors)
-        right_dots = [Dot(right_axis.coords_to_point(x, y, 0), radius=0.05, color=c) for (x, y), c in zip(y, colors)]
+        right_dots = [
+            Dot(right_axis.coords_to_point(x, y, 0), radius=DOT_RADIUS, color=c) for (x, y), c in zip(y, colors)
+        ]
 
         self.play(
             Create(left_axis_block),
