@@ -1,17 +1,10 @@
 import torch
-from datasets import load_from_disk
 from manim import *
 from manim.mobject.geometry.line import Arrow
 from manim.mobject.geometry.polygram import Polygon, Rectangle
 from manim_editor import PresentationSectionType
 
 from nn_core.common import PROJECT_ROOT
-
-MNIST_DATASET = load_from_disk(PROJECT_ROOT / "data" / "stitching" / "mnist")
-
-MNIST_DATASET.set_format(type="torch")
-# translation block -> fair
-#
 
 START_MODULE_OPACITY: float = 0.5
 
@@ -206,7 +199,13 @@ def autoencode_anim_big_stiching(
     image_out.next_to(decoded_arrow.get_right(), RIGHT)
 
     latent = Rectangle(height=2 * 0.6, width=0.5, fill_opacity=0.5, color=start_color)
-    latent.next_to(encoded_arrow, RIGHT)
+    latent.move_to(
+        (
+            ((encoded_arrow.get_center() + decoding_arrow.get_center()) / 2)[0],
+            encoded_arrow.get_center()[1],
+            0,
+        )
+    )
     latent.save_state()
 
     latent.generate_target()
@@ -221,7 +220,7 @@ def autoencode_anim_big_stiching(
     ]
 
     latent.generate_target()
-    latent.target.next_to(decoding_arrow.get_left(), LEFT)
+    latent.target.match_y(decoding_arrow)
     latent.target.set_color(end_color)
     move_latent_start = [Transform(latent, latent.target)]
 
@@ -279,14 +278,12 @@ class Stitching(Scene):
         # Standard AE mechanism, two different models
         image_indices1 = [0, 1, 2][:1]
         image_indices2 = [0, 4, 5][:1]
-        for i, (sample1, sample2) in enumerate(
-            zip(MNIST_DATASET.select(image_indices1), MNIST_DATASET.select(image_indices2))
-        ):
-            image1_in = ImageMobject(((sample1["image"]) * 255).to(torch.uint8)[0])
-            image1_out = ImageMobject(((sample1["ae_0_0"]) * 255).to(torch.uint8)[0])
+        for i, (sample1, sample2) in enumerate(zip(image_indices1, image_indices2)):
+            image1_in = Dot()
+            image1_out = Dot()
 
-            image2_in = ImageMobject(((sample2["image"]) * 255).to(torch.uint8)[0])
-            image2_out = ImageMobject(((sample2["ae_1_1"]) * 255).to(torch.uint8)[0])
+            image2_in = Dot()
+            image2_out = Dot()
 
             forward_anims1, image1_end_anim, latent1 = autoencode_anim(
                 encoder=ae1["encoder"],
@@ -391,14 +388,12 @@ class Stitching(Scene):
         # Standard AE mechanism, two different models
         image_indices1 = [2, 2][:1]
         image_indices2 = [2, 5][:1]
-        for i, (sample1, sample2) in enumerate(
-            zip(MNIST_DATASET.select(image_indices1), MNIST_DATASET.select(image_indices2))
-        ):
-            image1_in = ImageMobject(((sample1["image"]) * 255).to(torch.uint8)[0])
-            image1_out = ImageMobject(((sample1["ae_0_0"]) * 255).to(torch.uint8)[0])
+        for i, (sample1, sample2) in enumerate(zip(image_indices1, image_indices2)):
+            image1_in = Dot()
+            image1_out = Dot()
 
-            image2_in = ImageMobject(((sample2["image"]) * 255).to(torch.uint8)[0])
-            image2_out = ImageMobject(((sample2["ae_1_1"]) * 255).to(torch.uint8)[0])
+            image2_in = Dot()
+            image2_out = Dot()
 
             forward_anims1, image1_end_anim, latent1 = autoencode_anim(
                 encoder=ae1["encoder"],
@@ -438,23 +433,49 @@ class Stitching(Scene):
                 image2_end_anim,
             )
 
-        self.wait(0.1)
+        # self.wait(0.1)
         self.next_section("Translation", type=PresentationSectionType.NORMAL)
         slide_title3 = Tex("Latent Translation").to_edge(UP)
 
         # Prepare for stitching
+        t_symbol = Tex(r"$\mathcal{T}$", z_index=2)
+        t_symbol.set_z_index(2)
+        tblock = SurroundingRectangle(
+            t_symbol,
+            buff=0.1,
+            color=WHITE,
+            fill_color=BLACK,
+            fill_opacity=1,
+            z_index=1,
+        )
+        tblock.stretch(2, dim=0)
+        tblock_a = VGroup(tblock, t_symbol)
+        tblock_a.move_to(
+            VGroup(
+                ae1["encoded_arrow"],
+                ae2["encoded_arrow"],
+                ae1["decoding_arrow"],
+                ae2["decoding_arrow"],
+            ).get_center()
+        )
+
         self.play(
             ae1["decoder"].animate.set_opacity(0.1),
             ae2["encoder"].animate.set_opacity(0.1),
             cross2.animate.set_opacity(0.1),
             Transform(slide_title, slide_title3),
-            AnimationGroup(ShowPassingFlash(Underline(slide_title, color=YELLOW)), run_time=2.5),
+            AnimationGroup(
+                ShowPassingFlash(Underline(slide_title, color=YELLOW)),
+                Create(tblock),
+                Create(t_symbol),
+                run_time=2.5,
+            ),
         )
 
         # Stitching animation
         stitching_indices = [8]
-        for sample in MNIST_DATASET.select(stitching_indices):
-            image_in = ImageMobject(((sample["image"]) * 255).to(torch.uint8)[0])
+        for sample in stitching_indices:
+            image_in = Square()
             image_out = image_in.copy()
 
             first_half_start, move_latent_start, second_half_start, end_anim = autoencode_anim_big_stiching(
@@ -498,6 +519,8 @@ class Stitching(Scene):
         self.play(
             end_anim,
             Uncreate(cross1),
+            Uncreate(tblock),
+            Uncreate(t_symbol),
             Uncreate(cross2),
             FadeOut(slide_title),
             *(Uncreate(ae1[x]) for x in ("encoder", "decoder", "encoder_label", "decoder_label")),
