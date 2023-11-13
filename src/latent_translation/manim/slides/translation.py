@@ -95,7 +95,7 @@ def random_transform(x: torch.Tensor, seed: int) -> torch.Tensor:
     return x @ random_matrix
 
 
-class Method(Scene):
+class Translation(Scene):
     def build_pipeline(self, axis, source_space, target_space, colors):
         centered_source_space = source_space - source_space.mean(dim=0)
         centered_target_space = target_space - target_space.mean(dim=0)
@@ -150,7 +150,7 @@ class Method(Scene):
         return dots, anims
 
     def construct(self):
-        self.next_section("Method", type=PresentationSectionType.NORMAL, skip_animations=False)
+        self.next_section("Transation", type=PresentationSectionType.NORMAL, skip_animations=False)
 
         x = build_space(random=False)
         # calculate the angle for each 2D point in x
