@@ -13,12 +13,6 @@ class Conclusions(Scene):
         section_slide(self, "Conclusions")
         self.next_section("Latent Translation!", type=PresentationSectionType.NORMAL)
 
-        zeroshot = Tex(
-            r"\textbf{zero-shot latent communication}:",
-            font_size=32,
-        )
-        zeroshot.to_edge(UP, buff=MED_LARGE_BUFF * 1.5)
-
         conclusions = (
             Bullet(
                 r"We achieve \textbf{zero-shot latent communication} in a variety of settings:",
@@ -44,13 +38,7 @@ class Conclusions(Scene):
                 level=0,
                 group=5,
                 symbol=None,
-            ),
-            Bullet(
-                r"Please refer to the paper for more details, especially quantitative results!",
-                font_size=FONT_SIZE,
-                level=0,
-                group=6,
-                symbol=None,
+                adjustment=DOWN / 2,
             ),
         )
 
@@ -61,11 +49,10 @@ class Conclusions(Scene):
             global_shift=DOWN * 0.4,
             scale_active=1.025,
             inactive_opacity=0.35,
-        )
+        ).center()
 
         self.play(
             AnimationGroup(
-                Create(zeroshot),
                 FadeIn(bulletlist),
                 lag_ratio=0.5,
             ),
@@ -87,7 +74,6 @@ class Conclusions(Scene):
                 Uncreate(bulletlist),
                 lag_ratio=0.7,
             ),
-            Uncreate(zeroshot),
             run_time=1.5,
         )
         self.wait(0.1)
