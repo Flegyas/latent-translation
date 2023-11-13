@@ -47,7 +47,7 @@ def build_stitching_ae(model_id: str, encoder_color: str, decoder_color: str, la
         .scale(scale)
     )
 
-    latent = Rectangle(height=2 * 0.6, width=0.5, fill_opacity=0.5, color=TEAL)
+    latent = Rectangle(height=2 * 0.6, width=0.5, fill_opacity=0.5, color=PURPLE)
 
     encoded_arrow = Arrow(
         LEFT / 2,
@@ -100,7 +100,7 @@ def fadein_and_move(mob: VMobject, alpha: float, t=0.5):
 
 
 def autoencode_anim(
-    encoder, decoder, image_in, image_out, encoded_arrow: VMobject, decoding_arrow: VMobject, latent_color=TEAL
+    encoder, decoder, image_in, image_out, encoded_arrow: VMobject, decoding_arrow: VMobject, latent_color=PURPLE
 ):
     # Encoding
     encoding_arrow = Arrow(
