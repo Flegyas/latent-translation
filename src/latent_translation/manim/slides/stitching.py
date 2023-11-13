@@ -1,8 +1,11 @@
 import torch
+from lightning import seed_everything
 from manim import *
 from manim.mobject.geometry.line import Arrow
 from manim.mobject.geometry.polygram import Polygon, Rectangle
 from manim_editor import PresentationSectionType
+from powermanim.components.chartbars import ChartBars
+from scipy.special import softmax
 
 from nn_core.common import PROJECT_ROOT
 
@@ -10,6 +13,9 @@ START_MODULE_OPACITY: float = 0.5
 
 OBJ_OPACITY = 0.5
 
+N_BARS = 5
+
+seed_everything(0)
 
 def build_stitching_ae(model_id: str, encoder_color: str, decoder_color: str, label_pos):
     scale: float = 0.6
@@ -249,9 +255,9 @@ def autoencode_anim_big_stiching(
     return first_half_start, move_latent_start, second_half_start, end_anim
 
 
-model1_color = GREEN_D
-model2_color = PURPLE_D
-rel_color = TEAL
+model1_color = RED
+model2_color = BLUE
+rel_color = PURPLE
 
 
 class Stitching(Scene):
@@ -279,11 +285,25 @@ class Stitching(Scene):
         image_indices1 = [0, 1, 2][:1]
         image_indices2 = [0, 4, 5][:1]
         for i, (sample1, sample2) in enumerate(zip(image_indices1, image_indices2)):
-            image1_in = Dot()
-            image1_out = Dot()
+            image1_in = Dot(color=GRAY)
+            dist1 = softmax(np.random.randn(N_BARS) * 1.15)
 
-            image2_in = Dot()
-            image2_out = Dot()
+            image1_out = ChartBars(
+                Axes(x_range=[0, 6], y_range=[0, 1.5], x_length=0.5, y_length=2),
+                dist1,
+                xs=list(range(N_BARS)),
+                fill_color=RED,
+                stroke_width=1,
+            )
+
+            image2_in = Dot(color=DARK_BROWN)
+            image2_out = ChartBars(
+                Axes(x_range=[0, 6], y_range=[0, 1.5], x_length=0.5, y_length=2),
+                dist1,
+                xs=list(range(N_BARS)),
+                fill_color=RED,
+                stroke_width=1,
+            )
 
             forward_anims1, image1_end_anim, latent1 = autoencode_anim(
                 encoder=ae1["encoder"],
@@ -389,11 +409,25 @@ class Stitching(Scene):
         image_indices1 = [2, 2][:1]
         image_indices2 = [2, 5][:1]
         for i, (sample1, sample2) in enumerate(zip(image_indices1, image_indices2)):
-            image1_in = Dot()
-            image1_out = Dot()
+            image1_in = Dot(color=RED)
 
-            image2_in = Dot()
-            image2_out = Dot()
+            dist1 = softmax(np.random.randn(N_BARS) * 1.15)
+            image1_out = ChartBars(
+                Axes(x_range=[0, 6], y_range=[0, 1.5], x_length=0.5, y_length=2),
+                dist1,
+                xs=list(range(N_BARS)),
+                fill_color=RED,
+                stroke_width=1,
+            )
+
+            image2_in = Dot(color=BLUE)
+            image2_out = ChartBars(
+                Axes(x_range=[0, 6], y_range=[0, 1.5], x_length=0.5, y_length=2),
+                dist1,
+                xs=list(range(N_BARS)),
+                fill_color=RED,
+                stroke_width=1,
+            )
 
             forward_anims1, image1_end_anim, latent1 = autoencode_anim(
                 encoder=ae1["encoder"],
@@ -476,7 +510,16 @@ class Stitching(Scene):
         stitching_indices = [8]
         for sample in stitching_indices:
             image_in = Square()
-            image_out = image_in.copy()
+
+            dist1 = softmax(np.random.randn(N_BARS) * 1.15)
+
+            image_out = ChartBars(
+                Axes(x_range=[0, 6], y_range=[0, 1.5], x_length=0.5, y_length=2),
+                dist1,
+                xs=list(range(N_BARS)),
+                fill_color=RED,
+                stroke_width=1,
+            )
 
             first_half_start, move_latent_start, second_half_start, end_anim = autoencode_anim_big_stiching(
                 encoder=ae1["encoder"],
@@ -486,7 +529,7 @@ class Stitching(Scene):
                 image_in=image_in,
                 image_out=image_out,
                 start_color=YELLOW_D,
-                end_color=BLUE_D,
+                end_color=GREEN_D,
             )
 
             self.wait(0.1)
