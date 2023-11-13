@@ -22,12 +22,8 @@ class Thanks(Scene):
             .scale(0.25).to_corner(UR)
         )
 
-        # Sponsor
-        # qrcode = (
-        #     ImageMobject(PROJECT_ROOT / "data" / "assets" / "logos" / "qrcode.png")
-        #     # .set_opacity(0.75)
-        #     .scale(0.5 * 0.6).to_corner(UL)
-        # )
+        # More details
+        more_details = Tex("More details in our paper!").to_corner(UL)
 
         # Powered by...
         # powered = Tex(r"\emph{Powered by...}", font_size=28).to_edge(LEFT).shift(DOWN)
@@ -83,6 +79,7 @@ class Thanks(Scene):
                     ),
                 ),
                 Create(cc),
+                Write(more_details),
                 lag_ratio=0.5,
             ),
             run_time=2,
