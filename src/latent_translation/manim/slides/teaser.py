@@ -236,7 +236,7 @@ class Teaser(Scene):
 
         self.play(
             rel_block.animate.set_opacity(0.1),
-            Uncreate(cross),
+            cross.animate.set_opacity(0.1),
         )
 
         self.play(
