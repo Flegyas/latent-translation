@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-manedit --project_name "LatentTranslation" \
+manedit --project_name "Latent Space Translation via Semantic Alignment" \
   --quick_present_export media/videos/title/1080p60/sections/Title.json \
   --quick_present_export media/videos/teaser/1080p60/sections/Teaser.json \
   --quick_present_export media/videos/translation/1080p60/sections/Translation.json \
