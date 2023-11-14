@@ -100,7 +100,14 @@ def fadein_and_move(mob: VMobject, alpha: float, t=0.5):
 
 
 def autoencode_anim(
-    encoder, decoder, image_in, image_out, encoded_arrow: VMobject, decoding_arrow: VMobject, latent_color=PURPLE
+    encoder,
+    decoder,
+    image_in,
+    image_out,
+    encoded_arrow: VMobject,
+    decoding_arrow: VMobject,
+    latent_color=PURPLE,
+    rescale_to_fit=True,
 ):
     # Encoding
     encoding_arrow = Arrow(
@@ -111,7 +118,8 @@ def autoencode_anim(
         LEFT / 2,
         RIGHT / 2,
     )
-    image_in.rescale_to_fit(length=encoder.height, dim=1)
+    if rescale_to_fit:
+        image_in.rescale_to_fit(length=encoder.height, dim=1)
     image_out.rescale_to_fit(length=decoder.height, dim=1)
 
     encoding_arrow.next_to(encoder.get_left(), LEFT)
@@ -296,7 +304,7 @@ class Stitching(Scene):
                 stroke_width=1,
             )
 
-            image2_in = Tex("Pebble").scale_to_fit_height(image1_in.get_width())
+            image2_in = Tex("Pebble") #.scale_to_fit_width(image1_in.get_width())
             image2_out = ChartBars(
                 Axes(x_range=[0, 6], y_range=[0, 1.5], x_length=0.5, y_length=2),
                 dist1,
@@ -320,6 +328,7 @@ class Stitching(Scene):
                 decoding_arrow=ae2["decoding_arrow"],
                 image_in=image2_in,
                 image_out=image2_out,
+                rescale_to_fit=False,
             )
 
             latent_equal = Tex("=", z_index=2).scale(2).rotate(PI / 2)
@@ -420,7 +429,7 @@ class Stitching(Scene):
                 stroke_width=1,
             )
 
-            image2_in = Tex("Ananas").scale_to_fit_width(image1_in.get_width())
+            image2_in = Tex("Ananas") #.scale_to_fit_width(image1_in.get_width())
             image2_out = ChartBars(
                 Axes(x_range=[0, 6], y_range=[0, 1.5], x_length=0.5, y_length=2),
                 dist1,
@@ -446,6 +455,7 @@ class Stitching(Scene):
                 image_in=image2_in,
                 image_out=image2_out,
                 latent_color=GREEN,
+                rescale_to_fit=False,
             )
 
             self.wait(0.1)
