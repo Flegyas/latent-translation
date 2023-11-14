@@ -68,7 +68,7 @@ class Algorithm(Scene):
                 font_size=FONT_SIZE + 5,
                 symbol=None,
                 level=1,
-                group=6,
+                group=5,
                 adjustment=UP * MED_LARGE_BUFF * 1.25 * 0.25,
             ),
         )
@@ -98,15 +98,17 @@ class Algorithm(Scene):
 
         self.wait(0.5)
         self.next_section("Anchors", type=PresentationSectionType.NORMAL, skip_animations=False)
+
+        samples = [42, 7, 33]
         anchor_images1 = (
-            Group(*[ImageMobject(DATASET1[sample_idx][0], image_mode="RGB") for sample_idx in [0, 1, 3]])
+            Group(*[ImageMobject(DATASET1[sample_idx][0], image_mode="RGB") for sample_idx in samples])
             .scale(3.5)
             .arrange(RIGHT, buff=MED_LARGE_BUFF * 2)
             .to_edge(RIGHT)
             .shift(UP)
         )
         anchor_images2 = (
-            Group(*[ImageMobject(DATASET2[sample_idx][0], image_mode="RGB") for sample_idx in [0, 1, 3]])
+            Group(*[ImageMobject(DATASET2[sample_idx][0], image_mode="RGB") for sample_idx in samples])
             .scale(3.5)
             .arrange(RIGHT, buff=MED_LARGE_BUFF * 2)
             .to_edge(RIGHT)
@@ -130,6 +132,7 @@ class Algorithm(Scene):
         semantic_alignment_label = Tex(r"\textbf{Semantic Alignment!}", font_size=38).next_to(semantic_alignment, UP)
         semantic_alignment = Group(semantic_alignment, semantic_alignment_label)
 
+        self.next_section("X anchors", type=PresentationSectionType.NORMAL)
         # anchor1
         self.play(
             AnimationGroup(
@@ -138,8 +141,8 @@ class Algorithm(Scene):
             ),
             FadeIn(anchor_images1),
         )
-        self.wait(0.5)
 
+        self.next_section("Y anchors", type=PresentationSectionType.NORMAL)
         # anchor2
         self.play(
             AnimationGroup(
@@ -149,19 +152,17 @@ class Algorithm(Scene):
             FadeIn(anchor_images2),
         )
 
+        self.next_section("Correspondence", type=PresentationSectionType.NORMAL)
         # correspondence
         self.play(
             AnimationGroup(
                 bulletlist.only_next(),
-                AnimationGroup(*[FadeIn(c) for c in correspondence], lag_ratio=0.7),
-                # run_time=1,
+                AnimationGroup(*[FadeIn(c) for c in correspondence], lag_ratio=0.5),
+                run_time=1.5,
             )
         )
-
         self.play(FadeIn(semantic_alignment))
-        self.wait(0.5)
 
-        self.next_section("Encoding", type=PresentationSectionType.NORMAL, skip_animations=False)
         anims = []
         polygons = []
         regularized_anims = []
@@ -228,6 +229,7 @@ class Algorithm(Scene):
             )
             regularized_anims.append(MoveToTarget(polygon))
 
+        self.next_section("Encoding", type=PresentationSectionType.NORMAL)
         # encoding
         self.play(
             AnimationGroup(
@@ -251,6 +253,7 @@ class Algorithm(Scene):
             ),
         )
 
+        self.next_section("Normalization", type=PresentationSectionType.NORMAL)
         # regularization
         self.play(
             AnimationGroup(
@@ -271,7 +274,20 @@ class Algorithm(Scene):
             ),
         )
 
-        arrow = Arrow(0.2 * RIGHT, 0.2 * LEFT).next_to(bulletlist.rows[-1], RIGHT, buff=MED_LARGE_BUFF)
+        self.next_section("Formula", type=PresentationSectionType.NORMAL)
+        self.play(bulletlist.only_next())
+
+        arrow = Arrow(0.2 * RIGHT, 0.2 * LEFT).next_to(bulletlist.rows[-1][-1], RIGHT, buff=MED_LARGE_BUFF)
         arrow_label = Tex(r"\textbf{Mostly orthogonal!}", font_size=38).next_to(arrow, RIGHT)
 
-        self.play(bulletlist.only_next(), GrowArrow(arrow), FadeIn(arrow_label))
+        self.next_section("Mostly orthogonal", type=PresentationSectionType.NORMAL)
+        self.play(
+            AnimationGroup(
+                AnimationGroup(
+                    GrowArrow(arrow),
+                    FadeIn(arrow_label),
+                ),
+                ShowPassingFlash(Underline(arrow_label, color=YELLOW)),
+                lag_ratio=0.5,
+            )
+        )
