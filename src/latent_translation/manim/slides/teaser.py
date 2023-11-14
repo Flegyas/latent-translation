@@ -1,5 +1,8 @@
 from manim import *
+from manim_editor import PresentationSectionType
 from manim_mobject_svg import *
+
+from latent_translation.manim.utils import section_slide
 
 _ABS_COLOR = TEAL_D
 _REL_COLOR = GOLD_D
@@ -112,6 +115,8 @@ class Teaser(Scene):
         return legend
 
     def construct(self):
+        section_slide(self, "Latent Translation")
+
         abs1 = self._build_space(enc_type="absolute", label=r"\mathbf{X}")  # .to_edge(LEFT)
         abs2 = self._build_space(enc_type="absolute", label=r"\mathbf{Y}")  # .next_to(abs1, UP)
         rel = self._build_space(enc_type="relative", label=r"\mathbf{Z}")  # .to_edge(RIGHT)
@@ -120,10 +125,10 @@ class Teaser(Scene):
         dec1 = self._build_decoder(enc_type="absolute", label=r"dec_\mathbf{X}")  # .next_to(rel1, UP)
         dec2 = self._build_decoder(enc_type="absolute", label=r"dec_\mathbf{Y}")  # .next_to(rel1, UP)
 
-        block1 = VGroup(abs1, dec1).arrange(DOWN, buff=LARGE_BUFF)
-        block2 = VGroup(abs2, dec2).arrange(DOWN, buff=LARGE_BUFF)
+        block1 = VGroup(abs1, dec1).arrange(DOWN, buff=LARGE_BUFF).to_edge(UP, buff=LARGE_BUFF)
+        block2 = VGroup(abs2, dec2).arrange(DOWN, buff=LARGE_BUFF).to_edge(UP, buff=LARGE_BUFF)
         block_rel = VGroup(rel, rel_dec).arrange(DOWN, buff=LARGE_BUFF)
-        blocks = VGroup(
+        blocks: VGroup = VGroup(
             block1,
             block_rel,
             block2,
@@ -202,6 +207,7 @@ class Teaser(Scene):
                 lag_ratio=0,
             )
         )
+        self.next_section("Absolute decoding", type=PresentationSectionType.NORMAL)
 
         self.play(
             AnimationGroup(
@@ -212,6 +218,8 @@ class Teaser(Scene):
                 lag_ratio=0,
             )
         )
+
+        self.next_section("Relative projection", type=PresentationSectionType.NORMAL)
 
         legend = self._build_legend()
         self.play(
@@ -229,6 +237,8 @@ class Teaser(Scene):
         )
 
         self.play(AnimationGroup(FadeIn(decoding_rel), FadeIn(rel_dec), lag_ratio=0))
+
+        self.next_section("Remove relative", type=PresentationSectionType.NORMAL)
 
         rel_block = VGroup(rel, decoding_rel, rel_dec, rel_proj1, rel_proj2)
         cross = Cross(rel_block, stroke_width=10)
