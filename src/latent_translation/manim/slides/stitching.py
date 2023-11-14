@@ -125,6 +125,10 @@ def autoencode_anim(
     encoding_arrow.next_to(encoder.get_left(), LEFT)
     decoded_arrow.next_to(decoder.get_right(), RIGHT)
     image_in.next_to(encoding_arrow.get_left(), LEFT)
+
+    image_in.to_edge(LEFT)
+    image_in.shift((np.abs(((image_in.get_center() - encoding_arrow.get_left()) / 2))[0], 0, 0))
+
     image_out.next_to(decoded_arrow.get_right(), RIGHT)
 
     latent = Rectangle(height=2 * 0.6, width=0.5, fill_opacity=0.6, color=latent_color)
@@ -304,7 +308,7 @@ class Stitching(Scene):
                 stroke_width=1,
             )
 
-            image2_in = Tex("Pebble") #.scale_to_fit_width(image1_in.get_width())
+            image2_in = Tex("Pebble")  # .scale_to_fit_width(image1_in.get_width())
             image2_out = ChartBars(
                 Axes(x_range=[0, 6], y_range=[0, 1.5], x_length=0.5, y_length=2),
                 dist1,
@@ -429,7 +433,7 @@ class Stitching(Scene):
                 stroke_width=1,
             )
 
-            image2_in = Tex("Ananas") #.scale_to_fit_width(image1_in.get_width())
+            image2_in = Tex("Ananas")  # .scale_to_fit_width(image1_in.get_width())
             image2_out = ChartBars(
                 Axes(x_range=[0, 6], y_range=[0, 1.5], x_length=0.5, y_length=2),
                 dist1,
