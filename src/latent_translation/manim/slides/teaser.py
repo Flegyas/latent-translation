@@ -249,6 +249,7 @@ class Teaser(Scene):
             cross.animate.set_opacity(0.1),
         )
 
+        self.next_section("Direct translation", type=PresentationSectionType.NORMAL)
         self.play(
             AnimationGroup(
                 FadeIn(r),

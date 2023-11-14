@@ -150,6 +150,8 @@ class Translation(Scene):
 
             dots.append(step_dots)
 
+        anims.append(Unwrite(label))
+
         return dots, anims
 
     def construct(self):
