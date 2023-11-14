@@ -33,12 +33,13 @@ class Conclusions(Scene):
             ),
             Bullet(r"And evaluate it on more than 10 datasets ", font_size=FONT_SIZE, level=1, group=4),
             Bullet(
-                r"We observe that the transformation $\mathcal{T}$ can be constrained to be \textbf{orthogonal} without performance loss",
+                r"We observe that the transformation $\mathcal{T}$ can be\\",
+                r"constrained to be \textbf{orthogonal} without performance loss",
                 font_size=FONT_SIZE,
                 level=0,
                 group=5,
                 symbol=None,
-                adjustment=DOWN / 2,
+                adjustment=DOWN / 2 + RIGHT * 1.6,
             ),
         )
 
@@ -60,7 +61,6 @@ class Conclusions(Scene):
         )
 
         for group in range(max(x.group for x in conclusions) + 1):
-            self.wait(0.1)
             self.next_section("Next", type=PresentationSectionType.NORMAL)
             to_play = [bulletlist.only_next()]
             if group == 5:
