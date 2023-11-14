@@ -222,7 +222,7 @@ class Crossmodal(Scene):
             df, x_values=[x.tex_string for x in x_values], y_values=[y.tex_string for y in y_values]
         )
 
-        self.play(Write(Tex("Cross-modal Stitching").scale(1).to_edge(UP)), duration=0.5)
+        self.play(Write(Tex("Cross-modal Stitching").scale(1).to_edge(UP)), run_time=0.5)
 
         heatmap = (
             Heatmap(
@@ -242,16 +242,18 @@ class Crossmodal(Scene):
         dataset = Tex(r"\textbf{Dataset:} N24News").scale(0.5).to_corner(DR)
         self.play(FadeIn(heatmap), FadeIn(legend), Write(dataset), duration=0.5)
 
+        self.next_section("Better encodings", type=PresentationSectionType.NORMAL)
         # language encodings are better
         highlight = heatmap.highlight(start_row=6, end_row=10, start_col=6, end_col=10, color=RED_D)
         self.play(Create(highlight))
-        self.wait()
-        self.play(Uncreate(highlight))
 
+        self.next_section("Good decoders", type=PresentationSectionType.NORMAL)
+        self.play(Uncreate(highlight))
         # better encoder -> better performances than training modality
         highlight = heatmap.highlight(start_row=0, end_row=5, start_col=9, end_col=10, color=RED_D)
         self.play(Create(highlight))
-        self.wait()
+
+        self.next_section("Reset", type=PresentationSectionType.NORMAL, skip_animations=False)
         self.play(Uncreate(highlight))
 
     def to_matrix(self, df, x_values, y_values):
