@@ -1,4 +1,3 @@
-import torch
 from lightning import seed_everything
 from manim import *
 from manim.mobject.geometry.line import Arrow
@@ -17,6 +16,7 @@ N_BARS = 5
 
 seed_everything(0)
 
+
 def build_stitching_ae(model_id: str, encoder_color: str, decoder_color: str, label_pos):
     scale: float = 0.6
 
@@ -28,7 +28,7 @@ def build_stitching_ae(model_id: str, encoder_color: str, decoder_color: str, la
             RIGHT + UP * rr_size,
             RIGHT + DOWN * rr_size,
             2 * DOWN + LEFT,
-            fill_opacity=0.5,
+            fill_opacity=0.6,
             color=encoder_color,
         )
         # .set_opacity(START_MODULE_OPACITY)
@@ -42,12 +42,12 @@ def build_stitching_ae(model_id: str, encoder_color: str, decoder_color: str, la
     encoder = VGroup(encoder, rr_block)
 
     decoder = (
-        Polygon(RIGHT + 2 * UP, RIGHT + 2 * DOWN, DOWN + LEFT, UP + LEFT, fill_opacity=0.5, color=decoder_color)
+        Polygon(RIGHT + 2 * UP, RIGHT + 2 * DOWN, DOWN + LEFT, UP + LEFT, fill_opacity=0.6, color=decoder_color)
         # .set_opacity(START_MODULE_OPACITY)
         .scale(scale)
     )
 
-    latent = Rectangle(height=2 * 0.6, width=0.5, fill_opacity=0.5, color=PURPLE)
+    latent = Rectangle(height=2 * 0.6, width=0.5, fill_opacity=0.6, color=PURPLE)
 
     encoded_arrow = Arrow(
         LEFT / 2,
@@ -119,7 +119,7 @@ def autoencode_anim(
     image_in.next_to(encoding_arrow.get_left(), LEFT)
     image_out.next_to(decoded_arrow.get_right(), RIGHT)
 
-    latent = Rectangle(height=2 * 0.6, width=0.5, fill_opacity=0.5, color=latent_color)
+    latent = Rectangle(height=2 * 0.6, width=0.5, fill_opacity=0.6, color=latent_color)
     latent.next_to(encoded_arrow, RIGHT)
     latent.save_state()
 
@@ -204,7 +204,7 @@ def autoencode_anim_big_stiching(
     image_in.next_to(encoding_arrow.get_left(), LEFT)
     image_out.next_to(decoded_arrow.get_right(), RIGHT)
 
-    latent = Rectangle(height=2 * 0.6, width=0.5, fill_opacity=0.5, color=start_color)
+    latent = Rectangle(height=2 * 0.6, width=0.5, fill_opacity=0.6, color=start_color)
     latent.move_to(
         (
             ((encoded_arrow.get_center() + decoding_arrow.get_center()) / 2)[0],
@@ -285,7 +285,7 @@ class Stitching(Scene):
         image_indices1 = [0, 1, 2][:1]
         image_indices2 = [0, 4, 5][:1]
         for i, (sample1, sample2) in enumerate(zip(image_indices1, image_indices2)):
-            image1_in = Dot(color=GRAY)
+            image1_in = ImageMobject(PROJECT_ROOT / "data" / "assets" / "pebble")
             dist1 = softmax(np.random.randn(N_BARS) * 1.15)
 
             image1_out = ChartBars(
@@ -296,7 +296,7 @@ class Stitching(Scene):
                 stroke_width=1,
             )
 
-            image2_in = Dot(color=DARK_BROWN)
+            image2_in = Tex("Pebble").scale_to_fit_height(image1_in.get_width())
             image2_out = ChartBars(
                 Axes(x_range=[0, 6], y_range=[0, 1.5], x_length=0.5, y_length=2),
                 dist1,
@@ -409,7 +409,7 @@ class Stitching(Scene):
         image_indices1 = [2, 2][:1]
         image_indices2 = [2, 5][:1]
         for i, (sample1, sample2) in enumerate(zip(image_indices1, image_indices2)):
-            image1_in = Dot(color=RED)
+            image1_in = ImageMobject(PROJECT_ROOT / "data" / "assets" / "ananas.png")
 
             dist1 = softmax(np.random.randn(N_BARS) * 1.15)
             image1_out = ChartBars(
@@ -420,7 +420,7 @@ class Stitching(Scene):
                 stroke_width=1,
             )
 
-            image2_in = Dot(color=BLUE)
+            image2_in = Tex("Ananas").scale_to_fit_width(image1_in.get_width())
             image2_out = ChartBars(
                 Axes(x_range=[0, 6], y_range=[0, 1.5], x_length=0.5, y_length=2),
                 dist1,
@@ -436,7 +436,7 @@ class Stitching(Scene):
                 decoding_arrow=ae1["decoding_arrow"],
                 image_in=image1_in,
                 image_out=image1_out,
-                latent_color=YELLOW_D,
+                latent_color=ORANGE,
             )
             forward_anims2, image2_end_anim, latent2 = autoencode_anim(
                 encoder=ae2["encoder"],
@@ -445,7 +445,7 @@ class Stitching(Scene):
                 decoding_arrow=ae2["decoding_arrow"],
                 image_in=image2_in,
                 image_out=image2_out,
-                latent_color=BLUE_D,
+                latent_color=GREEN,
             )
 
             self.wait(0.1)
@@ -509,7 +509,7 @@ class Stitching(Scene):
         # Stitching animation
         stitching_indices = [8]
         for sample in stitching_indices:
-            image_in = Square()
+            image_in = ImageMobject(PROJECT_ROOT / "data" / "assets" / "snowflake")
 
             dist1 = softmax(np.random.randn(N_BARS) * 1.15)
 
@@ -528,8 +528,8 @@ class Stitching(Scene):
                 decoding_arrow=ae2["decoding_arrow"],
                 image_in=image_in,
                 image_out=image_out,
-                start_color=YELLOW_D,
-                end_color=GREEN_D,
+                start_color=ORANGE,
+                end_color=GREEN,
             )
 
             self.wait(0.1)
@@ -569,7 +569,3 @@ class Stitching(Scene):
             *(Uncreate(ae1[x]) for x in ("encoder", "decoder", "encoder_label", "decoder_label")),
             *(Uncreate(ae2[x]) for x in ("encoder", "decoder", "encoder_label", "decoder_label")),
         )
-
-
-if __name__ == "__main__":
-    Translation().construct()
