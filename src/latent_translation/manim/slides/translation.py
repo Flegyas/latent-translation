@@ -114,7 +114,7 @@ class Translation(Scene):
         ]
         dots = []
         anims = []
-        label = None
+        label = Tex("")
         for next_step, next_step_name in (
             (centered_source_space, "Centering"),
             (scaled_source_space, "Scaling"),
@@ -133,17 +133,20 @@ class Translation(Scene):
                 step_anims.append(MoveToTarget(previous_dot, rate_func=rate_functions.smooth))
                 step_dots.append(previous_dot)
 
-            label = Tex(next_step_name).next_to(axis, DOWN, buff=LARGE_BUFF)
+            next_label = Tex(next_step_name).next_to(axis, DOWN, buff=LARGE_BUFF)
             anims.append(
                 AnimationGroup(
-                    Unwrite(label) if label is not None else None,
+                    Unwrite(label),
                     AnimationGroup(
-                        FadeIn(label),
+                        Write(next_label),
                         AnimationGroup(*step_anims, lag_ratio=0),
                         lag_ratio=1,
                     ),
+                    lag_ratio=0.7,
                 )
             )
+
+            label = next_label
 
             dots.append(step_dots)
 
@@ -216,18 +219,16 @@ class Translation(Scene):
         self.play(*(Create(x) for x in left_dots[0]), run_time=0.1)
         self.play(*(Create(x) for x in right_dots), run_time=0.1)
 
-        self.wait()
-        for pipeline_step in pipeline_anims:
-            self.play(pipeline_step, run_time=1)
+        self.next_section(f"Pipeline start", type=PresentationSectionType.NORMAL)
 
-        self.wait()
+        for i, pipeline_step in enumerate(pipeline_anims):
+            self.play(pipeline_step, run_time=1)
+            self.next_section(f"Pipeline step {i}", type=PresentationSectionType.NORMAL)
 
         self.play(
             Uncreate(left_axis_block),
             Uncreate(right_axis_block),
         )
-
-        self.wait()
 
         approx_symbol = Tex(r"$\approx$")
         to_compare = VGroup(VGroup(*left_dots[0]), approx_symbol, VGroup(*right_dots))
@@ -235,12 +236,12 @@ class Translation(Scene):
             AnimationGroup(
                 to_compare.animate.arrange(RIGHT, buff=LARGE_BUFF * 2).center(), Write(approx_symbol), lag_ratio=0.5
             ),
-            run_time=2,
+            run_time=1,
         )
 
         self.next_section("Reset", type=PresentationSectionType.SKIP, skip_animations=False)
 
         self.play(
             AnimationGroup(*(Uncreate(x) for x in to_compare), lag_ratio=0.2),
-            run_time=2,
+            run_time=1,
         )
