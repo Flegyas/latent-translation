@@ -126,8 +126,9 @@ def autoencode_anim(
     decoded_arrow.next_to(decoder.get_right(), RIGHT)
     image_in.next_to(encoding_arrow.get_left(), LEFT)
 
-    image_in.to_edge(LEFT)
-    image_in.shift((np.abs(((image_in.get_center() - encoding_arrow.get_left()) / 2))[0], 0, 0))
+    right = image_in.get_right()
+    left = image_in.to_edge(LEFT).get_right()
+    image_in.shift((right - left) / 2)
 
     image_out.next_to(decoded_arrow.get_right(), RIGHT)
 

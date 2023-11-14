@@ -88,7 +88,10 @@ class Heatmap(VGroup):
 
         x_ticks = VGroup(
             *[
-                tick.scale_to_fit_height(cell.width * 0.35).rotate(PI / 6).next_to(cell.get_bottom(), DL)
+                tick.scale_to_fit_height(cell.width * 0.35)
+                .rotate(PI / 6)
+                .next_to(cell.get_bottom(), DOWN)
+                .align_to((cell.get_center() + cell.get_right()) / 2, RIGHT)
                 for tick, cell in zip(x_ticks, last_row)
             ]
         )
