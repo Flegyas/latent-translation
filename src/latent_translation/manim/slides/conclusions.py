@@ -61,11 +61,12 @@ class Conclusions(Scene):
         )
 
         for group in range(max(x.group for x in conclusions) + 1):
-            self.next_section("Next", type=PresentationSectionType.NORMAL)
+            self.next_section(f"Next {group}", type=PresentationSectionType.NORMAL)
             to_play = [bulletlist.only_next()]
             if group == 5:
                 to_play.append(Circumscribe(conclusions[group], color=BLUE, buff=SMALL_BUFF))
             self.play(*to_play)
+        self.wait(0.1)
 
         self.next_section("Reset", type=PresentationSectionType.SKIP)
         self.play(

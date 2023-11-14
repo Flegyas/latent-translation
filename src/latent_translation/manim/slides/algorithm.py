@@ -7,8 +7,6 @@ from torchvision.transforms import transforms
 
 from nn_core.common import PROJECT_ROOT
 
-from latent_translation.manim.utils import section_slide
-
 DISABLED_OPACITY = 0.4
 FONT_SIZE = 28
 SCALE_ACTIVE = 1.25
@@ -24,8 +22,6 @@ SIM_COLOR = BLUE
 
 class Algorithm(Scene):
     def construct(self):
-        section_slide(self, "Latent Translation")
-
         slide_title = Tex("Algorithm").to_edge(UP)
 
         self.next_section("Background algo", type=PresentationSectionType.NORMAL, skip_animations=False)
